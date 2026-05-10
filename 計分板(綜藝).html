@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>綜藝風班級計分板</title>
+
+<style>
+
+body{
+    margin:0;
+    font-family:"Arial",sans-serif;
+    background:
+    radial-gradient(circle at top,#334155,#0f172a 70%);
+    color:white;
+    overflow-x:hidden;
+}
+
+.container{
+    max-width:1800px;
+    margin:auto;
+    padding:20px;
+}
+
+.header{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin-bottom:25px;
+    position:relative;
+}
+
+.title{
+    font-size:52px;
+    font-weight:900;
+    letter-spacing:2px;
+    text-shadow:
+    0 0 10px #22d3ee,
+    0 0 25px #3b82f6;
+}
+
+.reset-btn{
+    position:absolute;
+    right:0;
+    background:linear-gradient(135deg,#ef4444,#f97316);
+    border:none;
+    color:white;
+    padding:12px 20px;
+    border-radius:999px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    box-shadow:0 6px 20px rgba(239,68,68,0.5);
+    transition:0.2s;
+}
+
+.reset-btn:hover{
+    transform:scale(1.05);
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:18px;
+}
+
+.card{
+    position:relative;
+    background:linear-gradient(
+        145deg,
+        rgba(255,255,255,0.15),
+        rgba(255,255,255,0.05)
+    );
+
+    border:2px solid rgba(255,255,255,0.15);
+    border-radius:28px;
+    padding:18px;
+    backdrop-filter:blur(12px);
+
+    box-shadow:
+    0 8px 30px rgba(0,0,0,0.35),
+    inset 0 1px 1px rgba(255,255,255,0.15);
+
+    transition:0.25s;
+}
+
+.card:hover{
+    transform:translateY(-4px) scale(1.02);
+}
+
+.rank-badge{
+    position:absolute;
+    top:-10px;
+    right:-10px;
+
+    background:linear-gradient(135deg,#facc15,#f59e0b);
+
+    color:#111827;
+    font-weight:900;
+    font-size:16px;
+
+    width:58px;
+    height:58px;
+
+    border-radius:50%;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    box-shadow:0 0 15px rgba(250,204,21,0.8);
+}
+
+.name-input{
+    width:100%;
+    border:none;
+    border-radius:14px;
+    background:rgba(255,255,255,0.12);
+
+    color:white;
+    font-size:28px;
+    font-weight:900;
+
+    text-align:center;
+
+    padding:10px;
+    box-sizing:border-box;
+}
+
+.name-input:focus{
+    outline:none;
+    background:rgba(255,255,255,0.22);
+}
+
+.score{
+    text-align:center;
+    font-size:78px;
+    font-weight:900;
+    margin:18px 0;
+
+    color:#67e8f9;
+
+    text-shadow:
+    0 0 15px rgba(103,232,249,0.8),
+    0 0 35px rgba(59,130,246,0.6);
+}
+
+.buttons{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.btn{
+    border:none;
+    border-radius:18px;
+    color:white;
+    font-weight:900;
+    cursor:pointer;
+    transition:0.15s;
+}
+
+.btn:hover{
+    transform:scale(1.05);
+}
+
+.big-btn{
+    padding:16px;
+    font-size:24px;
+}
+
+.small-btn{
+    padding:10px;
+    font-size:18px;
+}
+
+.green{
+    background:linear-gradient(135deg,#22c55e,#16a34a);
+}
+
+.red{
+    background:linear-gradient(135deg,#ef4444,#dc2626);
+}
+
+.blue{
+    background:linear-gradient(135deg,#3b82f6,#2563eb);
+}
+
+.orange{
+    background:linear-gradient(135deg,#fb923c,#ea580c);
+}
+
+.footer{
+    text-align:center;
+    margin-top:28px;
+    color:#94a3b8;
+    font-size:14px;
+}
+
+@media(max-width:1500px){
+    .grid{
+        grid-template-columns:repeat(3,1fr);
+    }
+}
+
+@media(max-width:900px){
+    .grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+}
+
+@media(max-width:600px){
+    .grid{
+        grid-template-columns:1fr;
+    }
+
+    .title{
+        font-size:38px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+
+        <div class="title">
+            🎤 團康大作戰 🏆
+        </div>
+
+        <button class="reset-btn"
+            onclick="resetScores()">
+            全部歸零
+        </button>
+
+    </div>
+
+    <div class="grid" id="scoreboard"></div>
+
+    <div class="footer">
+        Variety Show Scoreboard
+    </div>
+
+</div>
+
+<script>
+
+let classes = [];
+
+for(let i=1;i<=10;i++){
+    classes.push({
+        id:i,
+        name:`第${i}班`,
+        score:0
+    });
+}
+
+function renderBoard(){
+
+    const board = document.getElementById("scoreboard");
+
+    const sorted = [...classes].sort((a,b)=>b.score-a.score);
+
+    board.innerHTML = "";
+
+    sorted.forEach((team,index)=>{
+
+        board.innerHTML += `
+
+        <div class="card">
+
+            <div class="rank-badge">
+                #${index+1}
+            </div>
+
+            <input
+                class="name-input"
+                value="${team.name}"
+                onchange="changeName(${team.id},this.value)"
+            />
+
+            <div class="score">
+                ${team.score}
+            </div>
+
+            <div class="buttons">
+
+                <button
+                    class="btn green big-btn"
+                    onclick="updateScore(${team.id},1)">
+                    +1
+                </button>
+
+                <button
+                    class="btn red small-btn"
+                    onclick="updateScore(${team.id},-1)">
+                    -1
+                </button>
+
+                <button
+                    class="btn blue big-btn"
+                    onclick="updateScore(${team.id},5)">
+                    +5
+                </button>
+
+                <button
+                    class="btn orange small-btn"
+                    onclick="updateScore(${team.id},-5)">
+                    -5
+                </button>
+
+            </div>
+
+        </div>
+
+        `;
+    });
+}
+
+function updateScore(id,amount){
+
+    classes = classes.map(team=>{
+
+        if(team.id===id){
+
+            return{
+                ...team,
+                score:Math.max(0,team.score+amount)
+            };
+        }
+
+        return team;
+    });
+
+    renderBoard();
+}
+
+function changeName(id,newName){
+
+    classes = classes.map(team=>{
+
+        if(team.id===id){
+
+            return{
+                ...team,
+                name:newName || `第${id}班`
+            };
+        }
+
+        return team;
+    });
+
+    renderBoard();
+}
+
+function resetScores(){
+
+    classes = classes.map(team=>({
+        ...team,
+        score:0
+    }));
+
+    renderBoard();
+}
+
+renderBoard();
+
+</script>
+
+</body>
+</html>
